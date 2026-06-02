@@ -1574,27 +1574,27 @@ if ('serviceWorker' in navigator) {
 }
 
 // 2. Fungsi untuk mengirim pesan yang aman
-function kirimPesanKeSW(lat, lon) {
-    if (navigator.serviceWorker.controller) {
-        // Jika sudah ada controller, langsung kirim
-        navigator.serviceWorker.controller.postMessage({
-            action: 'fetchWeather',
-            lat: lat,
-            lon: lon
-        });
-    } else {
-        // Jika belum, tunggu sampai Service Worker siap
-        navigator.serviceWorker.ready.then((registration) => {
-            if (registration.active) {
-                registration.active.postMessage({
-                    action: 'fetchWeather',
-                    lat: lat,
-                    lon: lon
-                });
-            }
-        });
-    }
-}
+//function kirimPesanKeSW(lat, lon) {
+//    if (navigator.serviceWorker.controller) {
+//        // Jika sudah ada controller, langsung kirim
+//        navigator.serviceWorker.controller.postMessage({
+//            action: 'fetchWeather',
+//            lat: lat,
+//            lon: lon
+//        });
+//    } else {
+//        // Jika belum, tunggu sampai Service Worker siap
+//        navigator.serviceWorker.ready.then((registration) => {
+//            if (registration.active) {
+//                registration.active.postMessage({
+//                    action: 'fetchWeather',
+//                    lat: lat,
+//                    lon: lon
+//                });
+//            }
+//        });
+//    }
+//}
 
 window.onload = initApp;
 window.addEventListener('offline', handleOfflinePremium);
