@@ -1574,7 +1574,10 @@ if ('serviceWorker' in navigator) {
 }
 
 // 2. Fungsi untuk mengirim pesan yang aman
-//function kirimPesanKeSW(lat, lon) {
+function kirimPesanKeSW(lat, lon) {
+    // Jalur diputus karena data cuaca sudah sukses diambil langsung via fetch /api/weather
+    console.log("Sinkronisasi pesan dilewati: Data cuaca sudah dikelola langsung di sisi client.");
+}
 //    if (navigator.serviceWorker.controller) {
 //        // Jika sudah ada controller, langsung kirim
 //        navigator.serviceWorker.controller.postMessage({
