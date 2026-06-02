@@ -1,0 +1,3 @@
+1. Perbaikan pada main dashboard yang stiky, main board yang scrollable, dan bottom bar yang sticky (main board belum selesai)
+2. Perbaikan pada file index.html, gemini berhasil meng-generate file index yang rapi dah bersih, cuma bagian lokasi hanya menampilkan jalan, bagus diterapkan di html asli
+3. Perbaikan pada css, dan berhenti di css, lanjut di script
