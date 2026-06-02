@@ -1,0 +1,1604 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Proofing Donut">
+    <link rel="apple-touch-icon" href="icon-192x192.png">
+    <title>Proofing Donut</title>
+    <style>
+        :root {--cream: #FDF5E6; --dough: #F2D2A9; --chocolate: #4E342E; --accent: #E67E22; -webkit-tap-highlight-color: transparent; -webkit-tap-highlight-color: rgba(0, 0, 0, 0); /* Fallback untuk beberapa browser */ outline: none;}
+        body {font-family: 'Segoe UI', sans-serif; background-color: var(--cream); color: var(--chocolate); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding-bottom: 0px; overflow: hidden;}
+        /* Wadah utama dengan desain modern dan responsif 
+        .container { 
+            --bg-container: #ffffff;
+            --text-container: var(--chocolate);
+            --card-bg: rgba(0, 0, 0, 0.04);
+            position: relative; 
+            width: 100%; 
+            max-width: 400px; 
+            background: var(--bg-container); 
+            color: var(--text-container);
+            padding: 20px 20px 80px 20px; 
+            border-radius: 30px; 
+            box-shadow: 0 40px 20px rgba(0,0,0,0.5); 
+            text-align: center; 
+            transition: background 0.8s ease, color 0.8s ease, box-shadow 0.3s ease; 
+            overflow: hidden;
+            padding-bottom: 60px;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }*/
+        
+        .container {--bg-container: #ffffff; --card-bg: rgba(0, 0, 0, 0.04); background: var(--bg-container); width: 100%; max-width: 480px; /* Ukuran maksimal hp */ height: 100vh;    /* Memaksa container setinggi layar */ display: flex; flex-direction: column; /* Menyusun konten dari atas ke bawah */ position: relative; box-shadow: 0 4px 20px rgba(0,0,0,0.05); transition: background 0.8s ease, color 0.8s ease, box-shadow 0.3s ease;}
+
+/* 3. MEMAKSA BAGIAN LOKASI TETAP DIAM DI ATAS */
+        /*.location-section {position: sticky; top: 0; z-index: 10; background: var(--bg-container); /* Mencegah konten tengah terlihat transparan saat di-scroll */ /*padding: 15px; border-bottom: 1px solid rgba(0,0,0,0.05);}*/
+        #location-section {
+            position: sticky; 
+    top: 0; 
+    z-index: 10;
+    /* Menggunakan variabel dinamis dari JavaScript, dengan fallback warna default */
+    background: var(--bg-container, linear-gradient(135deg, #FDF5E6 0%, #F2D2A9 100%));
+    color: var(--text-container, #4E342E);
+    
+    /* Tambahkan padding atau border-radius bawah jika ingin tampilannya melengkung cantik */
+    padding: 20px;
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    transition: background 0.5s ease, color 0.5s ease; /* Efek transisi halus saat cuaca/waktu berubah */
+}
+
+/* Jika ada kartu kecil di dalam section lokasi (misal info suhu/ikon cuaca) */
+#location-section .weather-card {
+    background-color: var(--card-bg, rgba(78, 52, 46, 0.08));
+    border-radius: 12px;
+    padding: 10px 15px;
+    margin-top: 8px;
+    display: inline-block;
+    transition: background-color 0.5s ease;
+}
+
+        /* IKLAN MONETIZATION */
+        #ad-overlay {position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 10000; display: flex; flex-direction: column; justify-content: center; align-items: center;}
+        ins.adsbygoogle {display: block; width: 100%; min-height: 100px; /* Berikan tinggi minimal agar tidak terbaca 0 */}
+
+        /* MODE MINI / PIP */
+        .container.mini-mode { position: fixed; bottom: 20px; right: 20px; width: 160px; padding: 10px; border-radius: 20px; z-index: 9999; box-shadow: 0 5px 20px rgba(0,0,0,0.3); background: #fff5e6; height: auto !important; }
+        .mini-mode h1, .mini-mode .location, .mini-mode #retry-btn, .mini-mode .premium-offline-box, 
+        .mini-mode .weather-grid, .mini-mode #ai-analysis-wrapper, .mini-mode .mode-grid, 
+        .mini-mode style, .mini-mode label, .mini-mode div:has(#custom-time), .mini-mode .tips, .mini-mode .about-btn, .mini-mode .bottom-bar{ display: none !important; }
+        
+        /* TIMER CIRCLE*/
+        .mini-mode .timer-circle { width: 110px; height: 110px; margin: 5px auto; }
+        .mini-mode svg { width: 110px; height: 110px; }
+        .mini-mode circle { cx: 55; cy: 55; r: 45; stroke-width: 6; }
+        .mini-mode #progress-circle { stroke-dasharray: 282.7; transform: scaleX(-1) rotate(-90deg); transform-origin: 55px 55px; }
+        .mini-mode #countdown { font-size: 1.2rem; margin: 1px 0; }
+        .mini-mode .time-info { font-size: 0.5rem; height: auto; }
+        .mini-mode .btn { padding: 6px 10px; font-size: 0.7rem; border-radius: 20px; }
+        .pip-badge { position: absolute; top: 12px; right: 10px; background: var(--accent); color: white; font-size: 0.65rem; padding: 4px 8px; border-radius: 10px; cursor: pointer; font-weight: bold; z-index: 95;}
+
+        /* LOKASI DAN CUACA */
+        .location { word-wrap: break-word; font-size: 0.9rem; line-height: 1.2; padding: 10px; text-align: center;}
+        .weather-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 20px; }
+        .weather-card { background: var(--card-bg); color: var(--text-container, inherit); padding: 10px 4px; /* Padding atas-bawah 10px, kiri-kanan diperkecil ke 4px */ border-radius: 10px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 3px; transition: background 0.5s ease, color 0.5s ease;}
+        .weather-card .icon { font-size: 1.2rem; }
+        .weather-card span[id$="-val"] { font-size: 1rem; font-weight: 800; color: inherit; display: block; margin-top: 3px; }
+        .weather-card div { font-size: 0.55rem; font-weight: bold; color: inherit; opacity: 0.8; letter-spacing: 0.2px; }
+
+        /* TOMBOL DAN INTERAKSI */
+        .btn { background: var(--chocolate); color: white; border: none; padding: 15px 40px; border-radius: 50px; cursor: pointer; width: 100%; font-weight: bold; letter-spacing: 1px; margin-top: 5px; transition: background 0.3s; transform: 0.1s;}
+        /* Efek saat kursor di atas tombol */
+        .btn:hover {background: #6d4c41; box-shadow: 0 6px 10px rgba(0,0,0,0.15); transform: translateY(-2px);}
+        /* Efek saat tombol ditekan (click) */
+        .btn:active {transform: translateY(0); box-shadow: 0 2px 4px rgba(0,0,0,0.1); background: #3e2723; /* Warna cokelat lebih gelap */}
+        /* Opsional: Jika tombol dalam kondisi loading/disable */
+        .btn:disabled {background: #cccccc; cursor: not-allowed; transform: none;}
+        /* TOMBOL ABOUT */
+        .about-btn { position: absolute; top: 12px; left: 10px; background: #6d4c41; color: white; font-size: 0.65rem; padding: 4px 8px; border-radius: 10px; cursor: pointer; font-weight: bold; z-index: 95;}
+        /* BOTTOM NAVBAR */
+        .bottom-bar {position: absolute;bottom: 0;left: 0;right: 0;height: 60px;background-color: #ffffff; color: var(--chocolate);border-top: 1px solid rgba(0,0,0,0.08);display: flex;justify-content: space-around;align-items: center;z-index: 90; /*border-bottom-left-radius: 30px; border-bottom-right-radius: 30px;*/ pointer-events: auto;}
+        .bottom-item {display: flex;flex-direction: column; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold; color: var(--chocolate); cursor: pointer; width: 50%; height: 100%; transition: background 0.2s;}
+        button, input, select, textarea, div {outline: none; -webkit-focus-ring-color: transparent;}
+        .bottom-item:hover { background: rgba(230, 126, 34, 0.05); }
+        .bottom-item .icon-bar { font-size: 1.2rem; margin-bottom: 2px; }
+        .bottom-item.active-tab { color: var(--accent); }
+
+        /* TIPS - ada perubahan*/ 
+        .tips {margin-top: 25px; font-size: 0.85rem; font-style: italic; color: var(--chocolate); opacity: 0.8; border-top: 1px dashed rgba(78, 52, 46, 0.3); padding-top: 15px; line-height: 1.6; /*max-width: 340px; margin-left: auto; margin-right: auto;*/ text-align: center;}
+        
+         /* TIMER DAN ANALISIS AI - ada perubaha */
+        .timer-circle { position: relative; width: 200px; height: 200px; margin: 15px auto; display: flex; justify-content: center; align-items: center; flex-shrink: 0;}
+        .timer-content-wrapper { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; pointer-events: none; z-index: 5; }
+        #countdown { font-size: 2.5rem; font-weight: bold; color: var(--chocolate); transition: opacity 0.1s ease; margin: 5px 0; pointer-events: auto; cursor: pointer; }
+        #progress-circle { transition: stroke-dashoffset 1s linear; transform: scaleX(-1) rotate(-90deg); transform-origin: 100px 100px; }
+        .time-info { font-size: 0.75rem; color: inherit; opacity: 0.8; font-weight: 600; height: 16px; line-height: 16px; text-align: center; }
+
+        /* MODAL ABOUT DAN RESEP */
+        /* Desain About */
+        .about-modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: white; /*border-radius: 30px; box-sizing: border-box;*/ padding: 30px 20px; z-index: 100; display: flex; flex-direction: column; text-align: left; opacity: 0; pointer-events: none; transition: all 0.3s ease; transform: translateY(10px); color: var(--chocolate); }
+        .about-modal.active { opacity: 1; pointer-events: auto; transform: translateY(0); }
+        .about-modal h2 { text-align: center; margin-top: 10px; color: var(--accent); }
+        .about-content { flex: 1; overflow-y: auto; font-size: 0.85rem; line-height: 1.5; color: #555; padding-right: 5px; }
+        .about-content h3 { color: var(--chocolate); margin-bottom: 5px; font-size: 0.95rem; border-left: 3px solid var(--accent); padding-left: 8px; }
+        .about-content p { margin-top: 0; margin-bottom: 15px; }
+        .about-close-btn { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 25px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 15px; }
+        /* Modal Resep */
+      /*.recipe-modal {display: none; position: absolute; top: 0; left: 0;                                  width: 100%; height: 100%;                                    box-sizing: border-box;                   background: white;   padding: 20px;                                                                 z-index: 99; flex-direction: column; }*/
+        .recipe-modal {display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; box-sizing: border-box; background: white; padding: 20px; z-index: 99; flex-direction: column; }
+        .recipe-modal.active {display: flex !important; /*transform: translateY(0); */}
+        .recipe-modal h2 { text-align: center; margin-top: 10px; color: var(--accent); /*font-size: 1.3rem;*/ }
+        .recipe-content { flex: 1; overflow-y: auto; font-size: 0.85rem; line-height: 1.5; color: #555; padding-right: 5px; }
+        .recipe-content h3 { color: var(--chocolate); margin-bottom: 5px; font-size: 0.95rem; border-left: 3px solid var(--accent); padding-left: 8px; }
+        /* di versi baru dihilangkan -*/
+        .recipe-content p { margin-top: 0; margin-bottom: 15px; }
+        .recipe-close-btn { background: var(--chocolate); color: white; border: none; padding: 12px; border-radius: 25px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 15px; }
+        
+        /* Style Tabel Kalkulator Resep Dinamis */
+        .recipe-table { width: 100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 15px; font-size: 0.8rem; }
+        .recipe-table th, .recipe-table td { padding: 6px 4px; border-bottom: 1px solid #eee; text-align: left; vertical-align: middle; }
+        .recipe-table th { background-color: rgba(230, 126, 34, 0.1); color: var(--chocolate); }
+        .recipe-table td:last-child { font-weight: bold; color: var(--accent); text-align: right; }
+        .recipe-table select { width: 100%; padding: 4px; border: 1px solid #ddd; border-radius: 6px; color: var(--chocolate); background: #fff; font-size: 0.75rem; font-weight: 500; }
+        .recipe-table input[type="number"] { width: 42px; padding: 4px 2px; border: 1px solid #ddd; border-radius: 6px; text-align: center; color: var(--chocolate); font-size: 0.75rem; }
+        .recipe-table input[type="checkbox"] { transform: scale(1.1); margin-right: 4px; cursor: pointer; vertical-align: middle; }
+        .recipe-input-group { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; background: rgba(0,0,0,0.02); padding: 10px; border-radius: 12px; border: 1px dashed var(--accent); }
+        .recipe-input-group label { font-weight: bold; font-size: 0.85rem; }
+        .recipe-input-group input { width: 80px; padding: 6px; border-radius: 8px; border: 1px solid var(--accent); text-align: center; font-weight: bold; }
+
+        /* MODE SELECTION */
+        .mode-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; margin-bottom: 15px; }
+        .mode-btn { background: rgba(0,0,0,0.03); border: 1px solid var(--accent); padding: 10px; border-radius: 15px; cursor: pointer; font-size: 0.8rem; color: inherit; font-weight: bold; }
+        .mode-btn:hover:not(:disabled) { background: var(--accent); color: white; }
+        .mode-btn:disabled { opacity: 0.5; cursor: not-allowed; border-color: #ccc; color: #999; background: #eee; }
+
+        /* DISPLAY LOKASI - tetap di atas saat scroll - di versi baru dihilangkan
+        #loc-display { text-align: center; margin-bottom: 210px; font-size: 0.9rem; line-height: 1.4; position: sticky; top: 0; background: var(--bg-container); z-index: 100; padding: 10px 0; margin-bottom: 10px; }
+        */
+        /* Wadah untuk konten yang bisa scroll */
+        .scrollable-content {flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 80px; -webkit-overflow-scrolling: touch; background-color: transparent; color: var(--chocolate);}
+        #loc-line1 { font-weight: bold; color: var(--accent); }
+        #loc-line2 { font-size: 0.8rem; color: inherit; opacity: 0.8; }
+        #refresh-indicator { text-align: center; padding: 10px; font-size: 0.8rem; color: var(--accent); display: none; }
+
+        /* ANALISIS AI - di versi baru dihilangkan*/
+        #ai-analysis-wrapper { position: relative; width: 100%; }
+        #ai-toggle { position: relative; z-index: 60; cursor: pointer; margin-bottom: 5px; }
+        .ai-analysis-box {position: absolute; top: 30px; left: 0; right: 0; background: #ffffff; border: 2px solid #F2D2A9; padding: 20px; border-radius: 20px; text-align: left; box-shadow: 0 10px 25px rgba(0,0,0,0.15); transition: transform 0.3s ease, opacity 0.3s ease; overflow: hidden; display: none; opacity: 0; color: #4E342E; z-index: 150; transform: translateY(5px);}
+        .ai-analysis-box.show {display: block !important; opacity: 1; transform: translateY(0);}
+        .ai-analysis-box h3 { font-size: 1rem; margin-top: 0; color: #E67E22; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 10px; }
+        #ai-insight { font-size: 0.95rem; line-height: 1.6; color: #444; }
+        #ai-recommendation { margin-top: 15px; font-weight: 700; color: #E67E22; }
+        input[type="number"] { background: rgba(0,0,0,0.03); color: inherit; font-weight: bold; }
+        input:disabled, button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* FITUR PREMIUM MODE LURING - di versi baru dihilangkan */
+        .premium-offline-box { background: rgba(230, 126, 34, 0.08); border: 2px dashed var(--accent); border-radius: 20px; padding: 15px; margin-bottom: 20px; display: none; text-align: left; color: inherit; }
+        .premium-offline-box h4 { margin: 0 0 10px 0; color: var(--accent); font-size: 0.9rem; display: flex; align-items: center; gap: 5px; }
+        .premium-offline-field { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+        .premium-offline-field label { font-size: 0.75rem; font-weight: bold; display: block; margin-bottom: 4px; }
+        .premium-offline-field input { width: 80%; padding: 8px; border: 1px solid #f2d2a9; border-radius: 10px; text-align: center; }
+    </style>
+</head>
+<body>
+<!-- IKLAN MONETIZATION -->
+ <!--
+<div class="ad-container" style="width: 100%; min-height: 100px;">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="ca-pub-XXXXXXXXXXXX"
+         data-ad-slot="XXXXXXXX"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+    <script>
+         (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+</div>
+-->
+<!-- AKHIR IKLAN -->
+
+<div class="container" id="app-container">
+    <div id="refresh-indicator">↓ Lepaskan untuk memperbarui...</div>
+    <div class="about-btn" onclick="toggleAbout()">ℹ️ Tentang</div>
+    <div class="pip-badge" id="pip-btn" onclick="toggleMiniMode()">PIP</div>
+
+    <div id="location-section" onclick="openInGoogleMaps()" style="cursor: pointer;">
+        <h1 style="color: var(--accent); margin: 10px 0 5px 0; font-size: 1.5rem; text-align: center;">🍩 Proofing Donut</h1>
+        <div class="location">
+            <div id="loc-line1">Mendeteksi Lokasi...</div>
+            <div id="loc-line2"></div>
+            <small style="font-size: 0.7rem; opacity: 0.7;">(Klik untuk buka di Google Maps)</small>
+        </div>
+    </div>
+
+        <div class="weather-grid">
+            <div class="weather-card">
+                <div class="icon">🌡️</div>
+                <div>SUHU</div>
+                <span id="temp-val">--</span>
+            </div>
+            <div class="weather-card">
+                <div class="icon">💧</div>
+                <div>KELEMBABAN</div>
+                <span id="hum-val">--</span>
+            </div>
+            <div class="weather-card">
+                <div class="icon">💨</div>
+                <div>TEKANAN</div>
+                <span id="pres-val">--</span>
+            </div>
+            <div class="weather-card">
+                <div class="icon">⛰️</div>
+                <div>KETINGGIAN</div>
+                <span id="alt-val">--</span>
+            </div>
+        </div>
+
+
+<!-- Konten utama yang bisa di-scroll -->
+    <div class="scrollable-content">
+        <button id="retry-btn" onclick="initApp()" style="display:none; margin: 10px auto; padding: 5px 15px; cursor: pointer;">
+                Coba Deteksi Ulang Lokasi
+        </button>
+    
+        <div class="premium-offline-box" id="premium-box">
+            <h4>👑 Fitur Premium: Mode Luring</h4>
+            <p style="font-size: 0.75rem; margin: 0 0 12px 0;">Tidak ada internet. Atur parameter secara manual:</p>
+            <div class="premium-offline-field">
+                <div>
+                    <label for="off-temp">Suhu (°C)</label>
+                    <input type="number" id="off-temp" value="28" min="15" max="45" onchange="applyPremiumOfflineData()">
+                </div>
+                <div>
+                    <label for="off-hum">Kelembaban (%)</label>
+                    <input type="number" id="off-hum" value="65" min="20" max="100" onchange="applyPremiumOfflineData()">
+                </div>
+            </div>
+            <div style="margin-top: 10px;">
+                <label for="off-condition" style="font-size: 0.75rem; font-weight: bold;">Simulasi Cuaca Manual:</label>
+                <select id="off-condition" onchange="applyPremiumOfflineData()" style="width:100%; padding:5px; margin-top:4px; border-radius:5px;">
+                    <option value="clear">Cerah / Normal</option>
+                    <option value="clouds">Berawan</option>
+                    <option value="rain">Hujan</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="ai-analysis-wrapper">
+            <div id="ai-toggle" style="color: #E67E22; font-weight: bold; text-align: center;" onclick="toggleAI()">🔍 Analisis Kondisi Adonan</div>
+            <div class="ai-analysis-box" id="ai-analysis">
+                <h3>Analisis Kondisi Adonan</h3>
+                    <div id="ai-insight">Menunggu data cuaca...</div>
+                <div id="ai-recommendation" style="margin-top: 15px; font-weight: 700; color: #E67E22;"></div>
+            </div>
+        </div>
+
+        <div class="mode-grid">
+            <button class="mode-btn" id="btn-mode-initial" onclick="setMode('initial')">Initial</button>
+            <button class="mode-btn" id="btn-mode-rounding" onclick="setMode('rounding')">Rounding</button>
+            <button class="mode-btn" id="btn-mode-final" onclick="setMode('final')">Final</button>
+        </div>
+
+        <div class="timer-circle">
+            <svg width="200" height="200" id="timer-svg">
+                <circle cx="100" cy="100" r="90" stroke="rgba(0,0,0,0.05)" stroke-width="10" fill="transparent"/>
+                <circle id="progress-circle" cx="100" cy="100" r="90" stroke="#E67E22" stroke-width="10" fill="transparent" 
+                stroke-dasharray="565.48" stroke-dashoffset="0"/>
+            </svg>
+            <div class="timer-content-wrapper">
+                <div class="time-info" id="time-duration"></div>
+                <div id="countdown" onclick="handleTimerClick()">00:00</div>
+                <div class="time-info" id="time-eta"></div>
+            </div>
+        </div>
+
+        <div style="margin: 15px 0; text-align: center;">
+            <label for="custom-time" style="font-size: 0.8rem;">Atur Waktu (Menit):</label><br>
+            <div style="display: flex; justify-content: center; gap: 5px; margin-top: 5px;">
+                <input type="number" id="custom-time" value="30" min="1" max="120" 
+                    style="padding: 10px; width: 60px; border-radius: 10px; border: 1px solid #e67e22; text-align: center;">
+                <button id="set-btn" class="mode-btn" style="padding: 0 15px;" onclick="setCustomTime()">Set</button>
+            </div>
+        </div>
+    
+        <button class="btn" id="main-start-btn" onclick="triggerMainProofing()">START PROOFING</button>
+        <div class="tips" id="ai-tips">Menunggu sinkronisasi data cuaca...</div>
+    </div>
+
+    <div class="bottom-bar">
+        <div class="bottom-item active-tab" id="tab-timer" onclick="switchTab('timer')">
+            <span class="icon-bar">⏱️</span>
+            <span>Timer</span>
+        </div>
+        <div class="bottom-item" id="tab-recipe" onclick="switchTab('recipe')">
+            <span class="icon-bar">🧾</span>
+            <span>Resep</span>
+        </div>
+    </div>
+
+    <!-- About Modal -->
+    <div class="about-modal" id="about-modal">
+        <h2>ℹ️ Tentang Aplikasi</h2>
+        <div class="about-content">
+            <h3>🍩 Apa itu Donut Proofing Agent?</h3>
+            <p>Aplikasi asisten berbasis pintar yang dirancang khusus untuk membantu pembuat donat (*bakers*) menentukan waktu fermentasi (*proofing*) adonan secara presisi berdasarkan kondisi suhu dan kelembaban lingkungan sekitar secara real-time.</p>
+            
+            <h3>🧠 Bagaimana AI Bekerja?</h3>
+            <p>Aplikasi mendeteksi parameter cuaca lokal Anda melalui integrasi GPS/IP Jaringan. Menggunakan rumus adaptasi termal, Agen AI akan memotong atau memperpanjang waktu *proofing* dasar secara otomatis. Jika suhu ruangan panas, waktu diperpendek untuk menghindari *over-proofing*. Sebaliknya, jika dingin, waktu akan disesuaikan agar ragi mengembang sempurna.</p>
+            
+            <h3>👑 Fitur Utama</h3>
+            <ul>
+                <li><strong>Sinkronisasi Cuaca Otomatis:</strong> Mengambil data suhu, kelembaban, dan tekanan udara secara langsung.</li>
+                <li><strong>3 Mode Cepat:</strong> Pengaturan instan untuk tahap *Initial*, *Rounding*, dan *Final Proofing*.</li>
+                <li><strong>Mode Luring Premium:</strong> Tetap berfungsi di dapur tanpa koneksi internet dengan input parameter manual.</li>
+                <li><strong>Sistem Peringatan Aktif:</strong> Dilengkapi alarm suara dan getaran real-time agar adonan tidak rusak.</li>
+            </ul>
+
+            <h3>👥 Tim Pengembang</h3>
+            <p>Dikembangkan dengan penuh dedikasi untuk memajukan kualitas produksi roti dan donat rumahan maupun profesional melalui pendekatan teknologi cerdas.</p>
+            <p style="text-align: center; font-weight: bold; color: var(--chocolate);">v1.2.0 © 2026 Donut Proofing AI</p>
+        </div>
+        <button class="about-close-btn" onclick="toggleAbout()">KEMBALI KE APLIKASI</button>
+    </div>
+
+    <!-- Recipe Modal -->
+    <div class="recipe-modal" id="recipe-modal">
+        <h2>🧾 Kalkulator Resep Dinamis</h2>
+        <div class="recipe-content">
+            <h3>🍩 Metode Baker's Percentage</h3>
+            <p>Gunakan tanda centang <b>[✓]</b> untuk mengaktifkan bahan atau hilangkan centang <b>[ ]</b> jika ingin meniadakan bahan tersebut dari adonan.</p>
+            
+            <div class="recipe-input-group">
+                <label for="flour-weight">Tepung Utama (g):</label>
+                <input type="number" id="flour-weight" value="1000" min="100" max="10000" oninput="calculateIngredients()">
+            </div>
+
+            <table class="recipe-table">
+                <thead>
+                    <tr>
+                        <th>Bahan / Variasi</th>
+                        <th style="width: 65px; text-align: center;">Rasio</th>
+                        <th style="text-align: right; width: 75px;">Berat</th>
+                        <th style="text-align: right; width: 75px;">Harga</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <input type="checkbox" id="check-flour" checked onchange="toggleRowActive('flour', 100)">
+                            <select id="recipe-flour-type" onchange="calculateIngredients()">
+                                <option value="single">Tepung Terigu Protein Tinggi</option>
+                                <option value="mix">Kombinasi (Pro Tinggi 70% + Sedang 30%)</option>
+                            </select>
+                        </td>
+                        <td style="text-align: center;"><input type="number" id="ratio-flour" value="100" disabled> %</td>
+                        <td><span id="target-flour">1000</span> g</td>
+                        <td><input type="number" id="price-flour" value="16000" oninput="calculateIngredients()"></td>
+                        <td><input type="number" id="size-flour" value="1000" oninput="calculateIngredients()"></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <input type="checkbox" id="check-water" checked onchange="toggleRowActive('water', 55)">
+                            <select id="recipe-water-type" onchange="calculateIngredients()">
+                                <option value="water">Air Es Dingin</option>
+                                <option value="milk-liquid">Susu Cair Dingin (Rich)</option>
+                            </select>
+                        </td>
+                        <td style="text-align: center;"><input type="number" id="ratio-water" value="55" step="0.5" oninput="calculateIngredients()"> %</td>
+                        <td><span id="target-water">550</span> g</td>
+                        <td><input type="number" id="price-water" value="2000" oninput="calculateIngredients()"></td>
+                        <td><input type="number" id="size-water" value="1000" oninput="calculateIngredients()"></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <input type="checkbox" id="check-sugar" checked onchange="toggleRowActive('sugar', 15)">
+                            <select id="recipe-sugar-type" onchange="calculateIngredients()">
+                                <option value="caster">Gula Pasir</option>
+                                <option value="powder">Gula Halus</option>
+                            </select>
+                        </td>
+                        <td style="text-align: center;"><input type="number" id="ratio-sugar" value="15" step="0.5" oninput="calculateIngredients()"> %</td>
+                        <td><span id="target-sugar">150</span> g</td>
+                        <td><input type="number" id="price-sugar" value="18000" oninput="calculateIngredients()"></td>
+                        <td><input type="number" id="size-sugar" value="1000" oninput="calculateIngredients()"></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <input type="checkbox" id="check-egg" checked onchange="toggleRowActive('egg', 12)">
+                            <select id="recipe-egg-type" onchange="handleEggTypeChange()">
+                                <option value="yolk">Kuning Telur (Empuk)</option>
+                                <option value="whole">Telur Utuh (Volume)</option>
+                            </select>
+                        </td>
+                        <td style="text-align: center;"><input type="number" id="ratio-egg" value="12" step="0.5" oninput="calculateIngredients()"> %</td>
+                        <td><span id="target-egg">120</span> g</td>
+                        <td><input type="number" id="price-egg" value="28000" oninput="calculateIngredients()"></td>
+                        <td><input type="number" id="size-egg" value="1000" oninput="calculateIngredients()"></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <input type="checkbox" id="check-addon" onchange="toggleRowActive('addon', 20)">
+                            <select id="recipe-addon-type" onchange="handleAddonTypeChange()">
+                                <option value="none">Tanpa Pelembab Ekstra</option>
+                                <option value="potato">Kentang Kukus (Halus)</option>
+                                <option value="pumpkin">Labu Kuning Kukus</option>
+                            </select>
+                        </td>
+                        <td style="text-align: center;"><input type="number" id="ratio-addon" value="0" step="0.5" oninput="calculateIngredients()" disabled> %</td>
+                        <td><span id="target-addon">0</span> g</td>
+                        <td><input type="number" id="price-addon" value="45000" oninput="calculateIngredients()"></td>
+                        <td><input type="number" id="size-addon" value="500" oninput="calculateIngredients()"></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <input type="checkbox" id="check-milk" checked onchange="toggleRowActive('milk', 5)">
+                            <span>Susu Bubuk</span>
+                        </td>
+                        <td style="text-align: center;"><input type="number" id="ratio-milk" value="5" step="0.5" oninput="calculateIngredients()"> %</td>
+                        <td><span id="target-milk">50</span> g</td>
+                        <td><input type="number" id="price-milk" value="40000" oninput="calculateIngredients()"></td>
+                        <td><input type="number" id="size-milk" value="500" oninput="calculateIngredients()"></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <input type="checkbox" id="check-yeast" checked onchange="toggleRowActive('yeast', 2)">
+                            <span>Ragi Instan</span>
+                        </td>
+                        <td style="text-align: center;"><input type="number" id="ratio-yeast" value="2" step="0.1" oninput="calculateIngredients()"> %</td>
+                        <td><span id="target-yeast">20</span> g</td>
+                        <td><input type="number" id="price-ragi" value="5000" oninput="calculateIngredients()"></td>
+                        <td><input type="number" id="size-ragi" value="55" oninput="calculateIngredients()"></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <input type="checkbox" id="check-butter" checked onchange="toggleRowActive('butter', 12)">
+                            <span>Mentega / Margarin</span>
+                        </td>
+                        <td style="text-align: center;"><input type="number" id="ratio-butter" value="12" step="0.5" oninput="calculateIngredients()"> %</td>
+                        <td><span id="target-butter">120</span> g</td>
+                        <td><input type="number" id="price-lemak" value="30000" oninput="calculateIngredients()"></td>
+                        <td><input type="number" id="size-lemak" value="1000" oninput="calculateIngredients()"></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <input type="checkbox" id="check-salt" checked onchange="toggleRowActive('salt', 1.5)">
+                            <span>Garam</span>
+                        </td>
+                        <td style="text-align: center;"><input type="number" id="ratio-salt" value="1.5" step="0.1" oninput="calculateIngredients()"> %</td>
+                        <td><span id="target-salt">15</span> g</td>
+                        <td><input type="number" id="price-salt" value="5000" oninput="calculateIngredients()"></td>
+                        <td><input type="number" id="size-salt" value="500" oninput="calculateIngredients()"></td>
+                </tbody>
+                <tfoot style="background: rgba(78, 52, 46, 0.05); font-weight: bold; border-top: 2px solid var(--chocolate);">
+                    <tr>
+                        <td style="padding: 10px 8px;">TOTAL</td>
+                        <td id="total-weight-val" style="padding: 10px 8px; text-align: right;">0 g</td>
+                        <td id="total-price-val" style="padding: 10px 8px; text-align: right;">Rp 0</td>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <h3>💡 Catatan Formula Dinamis</h3>
+            <div id="recipe-dynamic-note" style="font-size: 0.8rem; background: rgba(230,126,34,0.05); padding: 10px; border-radius: 10px; border-left: 3px solid var(--accent); color: #555;">
+                Gunakan air es atau susu dingin. Menggunakan kuning telur saja memberikan tekstur donat yang jauh lebih empuk dan lembut layaknya donat premium.
+            </div>
+        </div>
+        <button class="recipe-close-btn" onclick="toggleRecipe()">TUTUP RESEP</button>
+    </div>
+<!--
+    <div class="location" id="loc-display" onclick="openInGoogleMaps()" style="cursor: pointer;">
+        <div id="loc-line1">Mendeteksi Lokasi...</div>
+        <div id="loc-line2"></div>
+        <small style="font-size: 0.7rem; opacity: 0.7;">(Klik untuk buka di Google Maps)</small>
+    </div>
+    <button id="retry-btn" onclick="initApp()" style="display:none; margin: 10px auto; padding: 5px 15px; cursor: pointer;">
+        Coba Deteksi Ulang Lokasi
+    </button>
+    </div>
+--> 
+<!--
+    <div class="timer-section">...</div>
+    <div class="control-section">...</div>
+    <div id="ai-analysis-wrapper">...</div>
+-->
+</div>
+
+<script>
+let timerInterval;
+let isTimerRunning = false; 
+let currentLat, currentLon; 
+let totalDurationMinutes = 0;
+let alarmTriggered = false; 
+let currentSelectedBaseDuration = 30; 
+// Variabel global untuk menyimpan waktu awal dan total detik untuk perhitungan sisa waktu
+// 2 kode di bawah ini tidak berjalan mengambil data lokasi, suhu, kelembaban saat ditambahkan
+//let globalTotalSeconds = 0;
+//let globalInitialSeconds = 0;
+
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+function toggleAbout() {
+    const modal = document.getElementById('about-modal');
+    modal.classList.toggle('active');
+}
+
+// MANAGEMENT SWITCH TAB & BOTTOM BAR
+function switchTab(target) {
+    const tabTimer = document.getElementById('tab-timer');
+    const tabRecipe = document.getElementById('tab-recipe');
+    
+    if(target === 'recipe') {
+        tabTimer.classList.remove('active-tab');
+        tabRecipe.classList.add('active-tab');
+        document.getElementById('recipe-modal').classList.add('active');
+        calculateIngredients();
+        // kode di bawah ini di versi baru dihilangkan karena sudah otomatis membuka resep saat klik tab resep
+        //openRecipeSheet();
+    } else {
+        tabRecipe.classList.remove('active-tab');
+        tabTimer.classList.add('active-tab');
+        document.getElementById('recipe-modal').classList.remove('active');
+        // kode di bawah ini di versi baru dihilangkan karena sudah otomatis menutup resep saat klik tab timer
+        //closeRecipeSheet();
+    }
+}
+
+function toggleRecipe() {
+    switchTab('timer');
+}
+// LOGIK MODAL RESEP - di versi baru dihilangkan
+//function openRecipeSheet() {
+//    const modal = document.getElementById('recipe-modal');
+//    modal.classList.add('active');
+//    calculateIngredients();
+//}
+
+//function closeRecipeSheet() {
+//    const modal = document.getElementById('recipe-modal');
+//    modal.classList.remove('active');
+//}
+
+//function toggleRecipe() {
+//    const modal = document.getElementById('recipe-modal');
+//    if(modal.classList.contains('active')) {
+//        switchTab('timer');
+//    } else {
+//        switchTab('recipe');
+//    }
+//}
+
+// MENANGANI AKTIF/NONAKTIF ROW DENGAN CHECKBOX
+function toggleRowActive(idKey, defaultRatioValue) {
+    const isChecked = document.getElementById(`check-${idKey}`).checked;
+    const ratioInput = document.getElementById(`ratio-${idKey}`);
+    // kode di bawah ini di dihilangkan, diganti kode di atasnya. karena tidak bisa mengambil data rasio saat toggle bahan, sehingga diubah menjadi mengambil data rasio dari parameter fungsi
+    //const ratioInput = document.getElementById(`ratio-idKey` ? document.getElementById(`ratio-${idKey}`) : null);
+    const selectDropdown = document.getElementById(`recipe-${idKey}-type`);
+    
+    if (ratioInput) {
+        ratioInput.disabled = !isChecked;
+        ratioInput.value = isChecked ? defaultRatioValue : 0;
+    }
+    
+    if (selectDropdown) {
+        selectDropdown.disabled = !isChecked;
+        if (!isChecked) {
+            selectDropdown.value = selectDropdown.options[0].value;
+            if (idKey === 'addon') {
+                document.getElementById('ratio-water').value = "55"; // Balik ke air normal jika tambahan ditiadakan
+            }
+        } else {
+            if (idKey === 'addon') {
+                selectDropdown.value = "potato"; // Pasang kentang sebagai pilihan utama saat diaktifkan kembali
+                document.getElementById('ratio-water').value = "45"; 
+            }
+        }
+    }
+    calculateIngredients();
+}
+
+// LOGIK MODAL UNTUK VARIATION DROPDOWN
+function handleEggTypeChange() {
+    const eggType = document.getElementById('recipe-egg-type').value;
+    const ratioEggInput = document.getElementById('ratio-egg');
+    if (!document.getElementById('check-egg').checked) return;
+    // kode di bawah ini dihilangkan karena tidak bisa mengambil data rasio saat toggle bahan, sehingga diubah menjadi mengambil data rasio dari parameter fungsi
+    //const isChecked = document.getElementById('check-egg').checked;
+    
+    ratioEggInput.value = (eggType === 'yolk') ? "12" : "16";
+    calculateIngredients();
+    
+    // kode di bawah ini di versi baru dihilangkan karena sudah otomatis mengubah rasio telur saat jenis telur diganti, tanpa perlu cek checkbox lagi
+    //if (!isChecked) return;
+    
+    //if (eggType === 'yolk') {
+    //    ratioEggInput.value = "12";
+    //} else {
+    //    ratioEggInput.value = "16";
+    //}
+    calculateIngredients();
+}
+
+function handleAddonTypeChange() {
+    const addonType = document.getElementById('recipe-addon-type').value;
+    const ratioAddonInput = document.getElementById('ratio-addon');
+    const ratioWaterInput = document.getElementById('ratio-water');
+    const addonCheckbox = document.getElementById('check-addon');
+    
+    if (addonType === 'none') {
+        addonCheckbox.checked = false;
+        ratioAddonInput.value = "0";
+        ratioAddonInput.disabled = true;
+        ratioWaterInput.value = "55"; 
+    } else {
+        addonCheckbox.checked = true;
+        ratioAddonInput.disabled = false;
+        if (ratioAddonInput.value == "0") ratioAddonInput.value = "20";
+        ratioWaterInput.value = "45"; 
+    }
+    calculateIngredients();
+}
+
+function calculateIngredients() {
+    const flourInput = document.getElementById('flour-weight');
+    let flourWeight = parseFloat(flourInput.value);
+    if (isNaN(flourWeight) || flourWeight < 0) flourWeight = 0;
+
+    // Cek apakah bahan dicentang aktif atau tidak
+    const hasSugar = document.getElementById('check-sugar').checked;
+    const hasEgg = document.getElementById('check-egg').checked;
+    const hasAddon = document.getElementById('check-addon').checked;
+    const hasMilk = document.getElementById('check-milk').checked;
+    const hasYeast = document.getElementById('check-yeast').checked;
+    const hasButter = document.getElementById('check-butter').checked;
+    const hasSalt = document.getElementById('check-salt').checked;
+
+    // Ambil rasio (jika tidak dicentang maka paksa 0)
+    const rWater = parseFloat(document.getElementById('ratio-water').value) || 0;
+    const rSugar = hasSugar ? (parseFloat(document.getElementById('ratio-sugar').value) || 0) : 0;
+    const rEgg = hasEgg ? (parseFloat(document.getElementById('ratio-egg').value) || 0) : 0;
+    const rAddon = hasAddon ? (parseFloat(document.getElementById('ratio-addon').value) || 0) : 0;
+    const rMilk = hasMilk ? (parseFloat(document.getElementById('ratio-milk').value) || 0) : 0;
+    const rYeast = hasYeast ? (parseFloat(document.getElementById('ratio-yeast').value) || 0) : 0;
+    const rButter = hasButter ? (parseFloat(document.getElementById('ratio-butter').value) || 0) : 0;
+    const rSalt = hasSalt ? (parseFloat(document.getElementById('ratio-salt').value) || 0) : 0;
+
+    // Ambil jenis variasi bahan untuk teks dinamis
+    const flourType = document.getElementById('recipe-flour-type').value;
+    const waterType = document.getElementById('recipe-water-type').value;
+    const sugarType = document.getElementById('recipe-sugar-type').value;
+    const eggType = document.getElementById('recipe-egg-type').value;
+    const addonType = document.getElementById('recipe-addon-type').value;
+
+    // Tampilkan berat tepung ke DOM
+    if (flourType === 'single') {
+        document.getElementById('target-flour').innerHTML = `${flourWeight.toFixed(0)} g`;
+    } else {
+        document.getElementById('target-flour').innerHTML = `${flourWeight.toFixed(0)} g <br><small style="color:#777;">(High: ${(flourWeight*0.7).toFixed(0)}g | Med: ${(flourWeight*0.3).toFixed(0)}g)</small>`;
+    }
+    
+    // Hitung berat masing-masing bahan masukan ke DOM
+    const wWater = flourWeight * (rWater / 100);
+    const wSugar = flourWeight * (rSugar / 100);
+    const wEgg = flourWeight * (rEgg / 100);
+    const wAddon = flourWeight * (rAddon / 100);
+    const wMilk = flourWeight * (rMilk / 100);
+    const wYeast = flourWeight * (rYeast / 100);
+    const wButter = flourWeight * (rButter / 100);
+    const wSalt = flourWeight * (rSalt / 100);
+
+    // Tulis output ke kolom tabel berat (menggunakan variabel yang sudah dihitung di atas)
+    document.getElementById('target-water').innerText = wWater.toFixed(1);
+    document.getElementById('target-sugar').innerText = wSugar.toFixed(1);
+    document.getElementById('target-egg').innerText = wEgg.toFixed(1);
+    document.getElementById('target-addon').innerText = wAddon.toFixed(1);
+    document.getElementById('target-milk').innerText = wMilk.toFixed(1);
+    document.getElementById('target-yeast').innerText = wYeast.toFixed(1);
+    document.getElementById('target-butter').innerText = wButter.toFixed(1);
+    document.getElementById('target-salt').innerText = wSalt.toFixed(1);
+
+    // --- KALKULASI HARGA PER BAHAN ---
+    function getCost(weight, priceInputId, sizeInputId) {
+        let priceEl = document.getElementById(priceInputId);
+        let sizeEl = document.getElementById(sizeInputId);
+        let pricePerPack = priceEl ? (parseFloat(priceEl.value) || 0) : 0;
+        let packSize = sizeEl ? (parseFloat(sizeEl.value) || 1) : 1; 
+        if (packSize <= 0) packSize = 1;
+        return (weight / packSize) * pricePerPack;
+    }
+    
+    // Memanggil fungsi getCost untuk menghitung biaya riil tiap bahan di resep
+    let costFlour = getCost(flourWeight, 'price-flour', 'size-flour');
+    let costWater = getCost(wWater, 'price-water', 'size-water');
+    let costSugar = getCost(wSugar, 'price-sugar', 'size-sugar');
+    let costEgg = getCost(wEgg, 'price-egg', 'size-egg');
+    let costAddon = getCost(wAddon, 'price-addon', 'size-addon');
+    let costMilk = getCost(wMilk, 'price-milk', 'size-milk');
+    let costYeast = getCost(wYeast, 'price-yeast', 'size-yeast');     // Sesuai HTML: price-ragi & size-ragi
+    let costButter = getCost(wButter, 'price-butter', 'size-butter'); // Sesuai HTML: price-lemak & size-lemak
+    let costSalt = getCost(wSalt, 'price-salt', 'size-salt');
+
+    // Hitung TOTAL BERAT (Tepung + Semua bahan aktif)
+    let totalWeight = flourWeight + wWater + wSugar + wEgg + wAddon + wMilk + wYeast + wButter + wSalt;
+
+    // Hitung TOTAL HARGA berdasarkan biaya riil bahan yang terpakai
+    let totalPrice = costFlour + costWater + costSugar + costEgg + costAddon + costMilk + costYeast + costButter + costSalt;
+
+    // Tampilkan hasil total ke Footer Tabel
+    const totalWeightEl = document.getElementById('total-weight-val');
+    const totalPriceEl = document.getElementById('total-price-val');
+    
+    if (totalWeightEl) totalWeightEl.innerText = totalWeight.toFixed(1).toLocaleString('id-ID') + " g";
+    if (totalPriceEl) totalPriceEl.innerText = "Rp " + Math.round(totalPrice).toLocaleString('id-ID');
+
+    // Update pesan tips dapur edukatif otomatis
+    updateDynamicRecipeNote(flourType, waterType, sugarType, eggType, addonType, hasSugar, hasEgg, hasAddon);
+}
+
+// Scrip catatan formlulas dinamis masih perlu perbaikan berdasarkan urutan bahan yang diinput, karena saat ini masih menampilkan catatan semua bahan yang ada di resep, padahal tidak semua bahan digunakan jika ada bahan yang dinonaktifkan dengan checkbox. Sehingga perlu logika tambahan untuk menampilkan catatan hanya untuk bahan yang aktif digunakan saja.
+function updateDynamicRecipeNote(flour, water, sugar, egg, addon, hasSugar, hasEgg, hasAddon) {
+    const noteEl = document.getElementById('recipe-dynamic-note');
+    let noteText = "<strong>💡 Tips Adonan:</strong> ";
+    if (flour === 'mix') {
+        noteText += "Kombinasi tepung protein tinggi dan sedang mengurangi kekenyalan karet yang berlebih sehingga gigitannya empuk putus. ";
+    }
+    noteText += (water === 'milk-liquid') ? "Susu cair dingin menghasilkan serat selembut sutra. " : "Air es mengontrol temperatur adonan agar ragi tidak prematur. ";
+    if (water === 'milk-liquid') {
+        noteText += "Menggunakan full susu cair dingin menghasilkan rasa renyah legit yang gurih dan serat dalam donat yang selembut sutra. ";
+    } else {
+        noteText += "Air es sangat direkomendasikan untuk mengontrol suhu adonan agar ragi tidak prematur mengembang saat diuleni. ";
+    }
+    if (hasSugar && sugar === 'powder') noteText += "Gula halus mempercepat homogenitas (mempermudah proses pencampuran merata sempurna) terutama pada metode ulen tangan secara manual (*hand kneading*). ";
+    if (hasEgg && egg === 'yolk') noteText += "Kuning telur kaya lecitin alami yang berperan menjaga kelembutan donat premium. ";
+
+    if (hasAddon && addon === 'potato') {
+        noteText += "Penambahan kentang kukus mengikat air secara alami, menjaga kelembaban donat hingga berhari-hari.";
+    } else if (hasAddon && addon === 'pumpkin') {
+        noteText += "Labu kuning memberikan warna alami oranye emas yang cerah nan memikat tanpa zat kimia warna buatan.";
+    }
+
+    let totalWeight = 0;
+    let totalPrice = 0;
+
+    // TAMBAHKAN INI DI AKHIR FUNGSI (Di luar loop, sebelum fungsi selesai):
+    const totalWeightEl = document.getElementById('total-weight-val');
+    const totalPriceEl = document.getElementById('total-price-val');
+    
+    if (totalWeightEl) {
+        totalWeightEl.innerText = totalWeight.toLocaleString('id-ID') + " g";
+    }
+    if (totalPriceEl) {
+        totalPriceEl.innerText = "Rp " + totalPrice.toLocaleString('id-ID');
+    }
+
+    noteEl.innerHTML = noteText;
+}
+
+// Alarm
+function playAlarmTone() {
+    const startTime = audioCtx.currentTime;
+    for (let i = 0; i < 3; i++) {
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, startTime + (i * 0.4)); 
+        gainNode.gain.setValueAtTime(0.5, startTime + (i * 0.4));
+        gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + (i * 0.4) + 0.3);        
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        osc.start(startTime + (i * 0.4));
+        osc.stop(startTime + (i * 0.4) + 0.3);
+    }
+}
+
+// Getar
+function triggerVibration() {
+    if (navigator.vibrate) navigator.vibrate([500, 250, 500]);
+}
+
+// Script untuk toggle mini mode (PIP mode)
+function toggleMiniMode() {
+    const container = document.getElementById('app-container');
+    const badge = document.getElementById('pip-btn');
+    const progressCircle = document.getElementById('progress-circle');
+    
+    container.classList.toggle('mini-mode');
+    
+    if (container.classList.contains('mini-mode')) {
+        badge.innerText = "✖ Perbesar";
+        if (progressCircle) {
+            progressCircle.style.strokeDasharray = "282.7";
+            progressCircle.style.transformOrigin = "55px 55px";
+        }
+    } else {
+        badge.innerText = "PIP";
+        if (progressCircle) {
+            progressCircle.style.strokeDasharray = "565.48";
+            progressCircle.style.transformOrigin = "100px 100px";
+        }
+    }
+    updateCircleProgress();
+}
+
+// Script untuk update label waktu dan ETA
+function updateTimeLabels(minutesLeft, secondsLeft, isOvertime = false) {
+    const durationEl = document.getElementById('time-duration');
+    const etaEl = document.getElementById('time-eta');
+    
+    if (minutesLeft === 0 && secondsLeft === 0 && !isOvertime) {
+        durationEl.innerText = ""; etaEl.innerText = ""; return;
+    }
+    durationEl.innerText = `Lama: ${totalDurationMinutes} Menit`;
+
+    if (isOvertime) {
+        etaEl.innerText = "Over-proofing! ⚠️"; etaEl.style.color = "red";
+    } else {
+        const now = new Date();
+        const totalSecondsRemaining = (minutesLeft * 60) + secondsLeft;
+        const etaTime = new Date(now.getTime() + totalSecondsRemaining * 1000);
+        
+        const hours = String(etaTime.getHours()).padStart(2, '0');
+        const minutes = String(etaTime.getMinutes()).padStart(2, '0');
+        etaEl.innerText = `Selesai ± ${hours}:${minutes}`;
+        etaEl.style.color = "inherit";
+    }
+}
+
+// TEMA KONDISI CUACA DAN KETERANGAN WAKTU - code lama
+//function updateDynamicTheme(weatherId, mainWeather) {
+//    const now = new Date();
+//    const hours = now.getHours();
+//    
+//    let timeOfDay = "siang"; 
+//    if (hours >= 5 && hours < 11) {
+//        timeOfDay = "pagi";
+//    } else if (hours >= 11 && hours < 16) {
+//        timeOfDay = "siang";
+//    } else {
+//        timeOfDay = "malam";
+//    }
+//
+//    let condition = "clear"; 
+//    const main = String(mainWeather).toLowerCase();
+//    
+//    if (weatherId >= 200 && weatherId < 600) {
+//        condition = "rain";
+//    } else if (weatherId >= 801 && weatherId <= 804) {
+//        condition = "clouds";
+//    } else if (main.includes("rain") || main.includes("drizzle") || main.includes("thunderstorm")) {
+//        condition = "rain";
+//    } else if (main.includes("cloud") || main.includes("overcast")) {
+//        condition = "clouds";
+//    }
+//
+//    let containerBg = "linear-gradient(135deg, #FFFFFF 0%, #FFFFFF 100%)"; 
+//    let textColor = "#4E342E"; 
+//    let cardBg = "rgba(0, 0, 0, 0.04)";
+//    let statusMessage = "";
+//
+//    if (timeOfDay === "pagi") {
+//        if (condition === "clear") {
+//            containerBg = "linear-gradient(135deg, #FFFDEB 0%, #FFF5D1 100%)"; textColor = "#5D4037"; cardBg = "rgba(93,64,55,0.06)";
+//        } else if (condition === "clouds") {
+//            containerBg = "linear-gradient(135deg, #F0FDFB 0%, #D2F7F2 100%)"; textColor = "#004D40"; cardBg = "rgba(0,77,64,0.06)";
+//        } else if (condition === "rain") {
+//            containerBg = "linear-gradient(135deg, #F4F6F7 0%, #E5EAEF 100%)"; textColor = "#263238"; cardBg = "rgba(38,50,56,0.07)";
+//        }
+//    } else if (timeOfDay === "siang") {
+//        if (condition === "clear") {
+//            containerBg = "linear-gradient(135deg, #FFF8F0 0%, #FFEEDD 100%)"; textColor = "#E65100"; cardBg = "rgba(230,81,0,0.06)";
+//        } else if (condition === "clouds") {
+//            containerBg = "linear-gradient(135deg, #F7FFFC 0%, #E1F9F1 100%)"; textColor = "#37474F"; cardBg = "rgba(55,71,79,0.06)";
+//        } else if (condition === "rain") {
+//            containerBg = "linear-gradient(135deg, #EBF0F2 0%, #D4DFE2 100%)"; textColor = "#37474F"; cardBg = "rgba(55,71,79,0.08)";
+//        }
+//    } else if (timeOfDay === "malam") {
+//        if (condition === "clear") {
+//            containerBg = "linear-gradient(135deg, #242A4A 0%, #171B30 100%)"; textColor = "#E0E0E0"; cardBg = "rgba(255,255,255,0.08)";
+//        } else if (condition === "clouds") {
+//            containerBg = "linear-gradient(135deg, #2D3539 0%, #202628 100%)"; textColor = "#ECEFF1"; cardBg = "rgba(255,255,255,0.08)";
+//        } else if (condition === "rain") {
+//            containerBg = "linear-gradient(135deg, #203A54 0%, #122538 100%)"; textColor = "#FFFFFF"; cardBg = "rgba(255,255,255,0.12)";
+//        }
+//    }
+//
+//    const appContainer = document.getElementById('app-container');
+//    if (appContainer) {
+//        appContainer.style.setProperty('--bg-container', containerBg);
+//        appContainer.style.setProperty('--text-container', textColor);
+//        appContainer.style.setProperty('--card-bg', cardBg);
+//    }
+//}
+
+// FUNGSI TEMA SESUAI KETERANGAN WAKTU DAN KONDISI CUACA - versi baru dengan keterangan waktu lebih detail dan kondisi cuaca tambahan seperti panas, mendung, berawan, serta tambahan logika suhu untuk mendeteksi kondisi panas meskipun cuaca clear/cerah.
+function updateDynamicTheme(weatherId, mainWeather) {
+    const now = new Date();
+    const hours = now.getHours();
+    
+    // 1. DETERMINASI KETERANGAN WAKTU
+    let timeOfDay = "siang"; 
+    if (hours >= 3 && hours < 5) timeOfDay = "dini hari";
+    else if (hours >= 5 && hours < 7) timeOfDay = "fajar";
+    else if (hours >= 7 && hours < 11) timeOfDay = "pagi";
+    else if (hours >= 11 && hours < 13) timeOfDay = "tengah siang";
+    else if (hours >= 13 && hours < 15) timeOfDay = "siang";
+    else if (hours >= 15 && hours < 18) timeOfDay = "sore";
+    else if (hours >= 18 && hours < 19) timeOfDay = "senja";
+    else if (hours >= 19 && hours < 21) timeOfDay = "petang";
+    else if (hours >= 21 && hours < 24) timeOfDay = "malam";
+    else timeOfDay = "tengah malam";
+
+    // 2. DETERMINASI KONDISI CUACA
+    let condition = "cerah"; 
+    const main = String(mainWeather).toLowerCase();
+
+    // Validasi pengecekan suhu dari elemen DOM
+    const tempElement = document.getElementById('temp-val');
+    let currentTemp = 28;
+    if (tempElement) {
+        currentTemp = parseFloat(tempElement.innerText) || 28;
+    }
+    console.log("Suhu saat ini:", currentTemp);
+
+    if (weatherId >= 200 && weatherId < 600) condition = "hujan";
+    else if (weatherId >= 701 && weatherId <= 781) condition = "mendung";
+    else if (weatherId == 801 || weatherId == 802) condition = "berawan";
+    else if (weatherId == 803 || weatherId == 804) condition = "mendung";
+    else if (main.includes("rain") || main.includes("drizzle") || main.includes("thunderstorm")) condition = "hujan";
+    else if (main.includes("overcast") || main.includes("fog")) condition = "mendung";
+    else if (main.includes("cloud")) condition = "berawan";
+    else if (currentTemp >= 33) condition = "panas";
+    else condition = "cerah";
+
+    // ALTERNATIF JIKA KODE DI ATAS TIDAK BERFUNGSI MENGAMBIL CUACA
+    //if (weatherId >= 200 && weatherId < 300) condition = "badai";
+    //else if (weatherId >= 300 && weatherId < 600) condition = "hujan";
+    //else if (weatherId >= 701 && weatherId <= 781) condition = "mendung";
+    //else if (weatherId == 801 || weatherId == 802) condition = "berawan";
+    //else condition = "cerah";
+
+    // 3. SKEMA GRADASI WARNA UNTUK HEADER
+    let containerBg = "linear-gradient(135deg, #FDF5E6 0%, #F2D2A9 100%)"; 
+    let textColor = "#4E342E"; 
+    let cardBg = "rgba(0, 0, 0, 0.04)";
+
+    if (timeOfDay === "fajar") {
+        if (condition === "hujan") { containerBg = "linear-gradient(135deg, #3A4454 0%, #29303D 100%)"; textColor = "#ECEFF1"; cardBg = "rgba(255,255,255,0.08)"; }
+        else if (condition === "mendung" || condition === "berawan") { containerBg = "linear-gradient(135deg, #708090 0%, #576574 100%)"; textColor = "#F5F5F5"; cardBg = "rgba(255,255,255,0.07)"; }
+        else { containerBg = "linear-gradient(135deg, #E0AAFF 0%, #FFC6FF 100%)"; textColor = "#4A148C"; cardBg = "rgba(74,20,140,0.06)"; }
+    } 
+    else if (timeOfDay === "pagi") {
+        if (condition === "hujan") { containerBg = "linear-gradient(135deg, #F4F6F7 0%, #E5EAEF 100%)"; textColor = "#263238"; cardBg = "rgba(38,50,56,0.07)"; }
+        else if (condition === "mendung") { containerBg = "linear-gradient(135deg, #BDC3C7 0%, #95A5A6 100%)"; textColor = "#2C3E50"; cardBg = "rgba(0,0,0,0.06)"; }
+        else if (condition === "berawan") { containerBg = "linear-gradient(135deg, #F0FDFB 0%, #D2F7F2 100%)"; textColor = "#004D40"; cardBg = "rgba(0,77,64,0.06)"; }
+        else if (condition === "panas") { containerBg = "linear-gradient(135deg, #FFF3E0 0%, #FFE0B2 100%)"; textColor = "#E65100"; cardBg = "rgba(230,81,0,0.06)"; }
+        else { containerBg = "linear-gradient(135deg, #FFFDEB 0%, #FFF5D1 100%)"; textColor = "#5D4037"; cardBg = "rgba(93,64,55,0.06)"; }
+    } 
+    else if (timeOfDay === "siang") {
+        if (condition === "hujan") { containerBg = "linear-gradient(135deg, #EBF0F2 0%, #D4DFE2 100%)"; textColor = "#37474F"; cardBg = "rgba(55,71,79,0.08)"; }
+        else if (condition === "mendung") { containerBg = "linear-gradient(135deg, #A6B1B5 0%, #8A979C 100%)"; textColor = "#212121"; cardBg = "rgba(0,0,0,0.07)"; }
+        else if (condition === "berawan") { containerBg = "linear-gradient(135deg, #F7FFFC 0%, #E1F9F1 100%)"; textColor = "#37474F"; cardBg = "rgba(55,71,79,0.06)"; }
+        else if (condition === "panas") { containerBg = "linear-gradient(135deg, #FFCC80 0%, #FFB74D 100%)"; textColor = "#BF360C"; cardBg = "rgba(191,54,12,0.07)"; }
+        else { containerBg = "linear-gradient(135deg, #FFF8F0 0%, #FFEEDD 100%)"; textColor = "#E65100"; cardBg = "rgba(230,81,0,0.06)"; }
+    } 
+    else if (timeOfDay === "sore") {
+        if (condition === "hujan") { containerBg = "linear-gradient(135deg, #DFE4EA 0%, #CED6E0 100%)"; textColor = "#2F3542"; cardBg = "rgba(47,53,66,0.08)"; }
+        else if (condition === "mendung" || condition === "berawan") { containerBg = "linear-gradient(135deg, #E4E7EB 0%, #C8D6E5 100%)"; textColor = "#222F3E"; cardBg = "rgba(34,47,62,0.06)"; }
+        else { containerBg = "linear-gradient(135deg, #FFEAA7 0%, #FFD32A 100%)"; textColor = "#5D4037"; cardBg = "rgba(93,64,55,0.06)"; }
+    } 
+    else if (timeOfDay === "senja") {
+        if (condition === "hujan" || condition === "mendung") { containerBg = "linear-gradient(135deg, #4B4B4B 0%, #2C3E50 100%)"; textColor = "#FFFFFF"; cardBg = "rgba(255,255,255,0.1)"; }
+        else { containerBg = "linear-gradient(135deg, #FF7F50 0%, #6F1E51 100%)"; textColor = "#FFFFFF"; cardBg = "rgba(255,255,255,0.12)"; }
+    } 
+    else if (timeOfDay === "malam") {
+        if (condition === "hujan") { containerBg = "linear-gradient(135deg, #203A54 0%, #122538 100%)"; textColor = "#FFFFFF"; cardBg = "rgba(255,255,255,0.12)"; }
+        else if (condition === "mendung" || condition === "berawan") { containerBg = "linear-gradient(135deg, #2D3539 0%, #202628 100%)"; textColor = "#ECEFF1"; cardBg = "rgba(255,255,255,0.08)"; }
+        else { containerBg = "linear-gradient(135deg, #242A4A 0%, #171B30 100%)"; textColor = "#E0E0E0"; cardBg = "rgba(255,255,255,0.08)"; }
+    } 
+    else if (timeOfDay === "tengah malam") {
+        if (condition === "hujan") { containerBg = "linear-gradient(135deg, #0F172A 0%, #020617 100%)"; textColor = "#94A3B8"; cardBg = "rgba(255,255,255,0.05)"; }
+        else { containerBg = "linear-gradient(135deg, #111827 0%, #030712 100%)"; textColor = "#9CA3AF"; cardBg = "rgba(255,255,255,0.05)"; }
+    }
+
+    // 4. TERAPKAN WARNA DINAMIS HANYA PADA HEADER
+    const locationSection = document.getElementById('location-section');
+    if (locationSection) {
+    locationSection.style.setProperty('--bg-container', containerBg);
+    locationSection.style.setProperty('--text-container', textColor);
+    locationSection.style.setProperty('--card-bg', cardBg);
+    locationSection.style.color = textColor;
+    }
+
+    // 5. SUNTIKKAN TEKS KETERANGAN WAKTU DAN CUACA KE HTML
+    const locLine2 = document.getElementById('loc-line2');
+    if (locLine2) {
+        const capitalizedTime = timeOfDay.charAt(0).toUpperCase() + timeOfDay.slice(1);
+        const capitalizedCond = condition.charAt(0).toUpperCase() + condition.slice(1);
+        
+        // Menampilkannya dalam bentuk baris info bergaya kartu kecil
+        locLine2.innerHTML = `
+            <div style="background-color: var(--card-bg); display: inline-block; padding: 6px 12px; border-radius: 20px; margin-top: 6px; font-size: 0.85rem; font-weight: 500;">
+                🕒 ${capitalizedTime} &nbsp;|&nbsp; 🌤️ ${capitalizedCond}
+            </div>`;
+    }
+}
+
+
+async function initApp() {
+    const line1 = document.getElementById('loc-line1');
+    const line2 = document.getElementById('loc-line2');
+    const retryBtn = document.getElementById('retry-btn');
+    const premiumBox = document.getElementById('premium-box');
+
+    if (!navigator.onLine) {
+        handleOfflinePremium();
+        return;
+    }
+
+    premiumBox.style.display = "none";
+    line1.innerText = "Mendeteksi lokasi...";
+    line2.innerText = "";
+    retryBtn.style.display = "none";
+
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+                await fetchLocationAndWeather(lat, lon, "GPS");
+            }, 
+            async (error) => {
+                await fetchLocationViaIP();
+            }, 
+            { enableHighAccuracy: false, timeout: 4000, maximumAge: 60000 }
+        );
+    } else {
+        await fetchLocationViaIP();
+    }
+}
+
+// Di dalam fungsi initApp() Anda:
+async function fetchWeather(lat, lon) {
+    // Panggil server proxy Anda, bukan langsung ke OpenWeatherMap
+    const response = await fetch(`http://localhost:3000/api/weather?lat=${lat}&lon=${lon}`);
+    const data = await response.json();
+    console.log(data);
+}
+
+// 1. FUNGSI UTAMA UNTUK MEMAKSA GPS AKURAT TERLEBIH DAHULU
+// 1. MEMAKSA BROWSER MENGGUNAKAN HARDWARE GPS ASLI (SANGAT AKURAT)
+function initiateLocationDetection() {
+    const line1 = document.getElementById('loc-line1');
+    const line2 = document.getElementById('loc-line2');
+    line1.innerText = "Mencari Satelit GPS Perangkat...";
+    line2.innerText = "Mohon klik 'Izinkan/Allow' jika muncul permintaan lokasi.";
+
+    // Opsi konfigurasi akurasi tinggi
+    const geoOptions = {
+        enableHighAccuracy: true, // Memaksa penggunaan GPS/Satelit (Akurat)
+        timeout: 10000,           // Batas waktu tunggu pencarian 10 detik
+        maximumAge: 0             // Mengabaikan cache lama, wajib mengambil data baru
+    };
+
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+                // Mengirim ke backend dengan flag koordinat GPS asli
+                fetchLocationAndWeather(lat, lon, "GPS Akurat");
+            },
+            (error) => {
+                console.warn("GPS Hardware gagal/ditolak. Beralih ke fallback jaringan internet...", error);
+                fetchLocationByIPFallback();
+            },
+            geoOptions
+        );
+    } else {
+        fetchLocationByIPFallback();
+    }
+}
+
+// 2. CADANGAN JIKA GPS PERANGKAT MATI ATAU DITOLAK USER (ESTIMASI INTERNET)
+async function fetchLocationByIPFallback() {
+    try {
+        document.getElementById('loc-line1').innerText = "Mendeteksi Lokasi via Jaringan...";
+        const res = await fetch('https://ipapi.co/json/');
+        const ipData = await res.json();
+        
+        if (ipData && ipData.latitude && ipData.longitude) {
+            fetchLocationAndWeather(ipData.latitude, ipData.longitude, "Estimasi Jaringan Provider");
+        } else {
+            throw new Error("Data IP Geolocation tidak valid");
+        }
+    } catch (err) {
+        console.error("Metode Fallback IP Gagal:", err);
+        document.getElementById('loc-line1').innerText = "Gagal Mendeteksi Lokasi";
+        document.getElementById('loc-line2').innerText = "Silakan aktifkan GPS Anda atau jalankan Mode Luring.";
+    }
+}
+
+// 3. FUNGSI UTAMA MENGAMBIL DATA BACKEND & DISTRIBUSI KE GRID MASING-MASING
+async function fetchLocationAndWeather(lat, lon, source) {
+    try {
+        // Panggil serverless proxy secara dinamis tanpa peduli server lokal/Ngrok
+        const response = await fetch(`/api/weather?lat=${lat}&lon=${lon}`);
+        
+        if (!response.ok) throw new Error("Gagal mengambil data via serverless proxy");
+        
+        const data = await response.json();
+        
+        // Ekstraksi data OpenWeather dari serverless response
+        const weatherData = data.weather;
+        const temp = weatherData.main.temp;
+        const humidity = weatherData.main.humidity;
+        const pressure = weatherData.main.pressure;
+        const weatherId = weatherData.weather[0].id;
+        const mainWeather = weatherData.weather[0].main;
+
+        // Hitung Ketinggian (Altitude)
+        const altitude = Math.round(44330 * (1 - Math.pow((pressure / 1013.25), 0.190284)));
+
+        // Ekstraksi komponen lokasi Indonesia dari OpenStreetMap (Nominatim)
+        const geoData = data.geocode;
+        let fullLocationName = "Lokasi Tidak Diketahui";
+        if (geoData && geoData.address) {
+            const addr = geoData.address;
+            const desa = addr.village || addr.suburb || addr.neighbourhood || addr.municipality || "";
+            const kecamatan = addr.subdistrict || "";
+            const kabupaten = addr.city || addr.regency || addr.county || "";
+            const provinsi = addr.state || "";
+            const negara = addr.country || "";
+
+            let parts = [];
+            if (desa) parts.push(desa);
+            if (kecamatan) parts.push(kecamatan);
+            if (kabupaten) parts.push(kabupaten);
+            if (provinsi) parts.push(provinsi);
+            if (negara) parts.push(negara);
+            fullLocationName = parts.join(", ");
+        }
+
+        // Tampilkan ke UI DOM
+        document.getElementById('loc-line1').innerText = `📍 ${fullLocationName}`;
+        document.getElementById('loc-line2').innerText = `Koordinat: ${parseFloat(lat).toFixed(4)}, ${parseFloat(lon).toFixed(4)} (${source})`;
+
+        document.getElementById('temp-val').innerText = `${Math.round(temp)} °C`;
+        document.getElementById('hum-val').innerText = `${humidity} %`;
+        document.getElementById('pres-val').innerText = `${pressure} hPa`;
+        document.getElementById('alt-val').innerText = altitude + " m";
+
+        currentLat = lat;
+        currentLon = lon;
+
+        // Integrasi kalkulasi adonan donut & tema dinamis
+        updateDynamicTheme(weatherId, mainWeather);
+        processWeatherData(temp, humidity);
+
+        // Simpan cache lokal untuk kenyamanan luring (offline) PWA
+        localStorage.setItem('donut_weather_cache', JSON.stringify({
+            temp: Math.round(temp),
+            hum: humidity,
+            pres: pressure,
+            weatherId: weatherId,
+            mainWeather: mainWeather,
+            locationName: fullLocationName,
+            lat: lat,
+            lon: lon,
+            timestamp: Date.now()
+        }));
+
+    } catch (error) {
+        console.error("Gagal sinkronisasi data:", error);
+        document.getElementById('loc-line1').innerText = "Gagal Sinkronisasi Cuaca";
+        document.getElementById('loc-line2').innerText = error.message;
+        
+        if (typeof fetchLocationOfflineFallback === "function") {
+            fetchLocationOfflineFallback();
+        }
+    }
+}
+
+function handleOfflinePremium() {
+    const line1 = document.getElementById('loc-line1');
+    const line2 = document.getElementById('loc-line2');
+    const premiumBox = document.getElementById('premium-box');
+    
+    premiumBox.style.display = "block";
+    const savedCache = localStorage.getItem('donut_premium_cache');
+    
+    if (savedCache) {
+        const cache = JSON.parse(savedCache);
+        line1.innerText = cache.locLine1;
+        line2.innerText = cache.locLine2 + " (Offline Mode)";
+        
+        document.getElementById('temp-val').innerText = cache.temp + "°C";
+        document.getElementById('hum-val').innerText = cache.hum + "%";
+        document.getElementById('pres-val').innerText = cache.pres + " (Baro)";
+        
+        document.getElementById('off-temp').value = cache.temp;
+        document.getElementById('off-hum').value = cache.hum;
+        
+        currentLat = cache.lat;
+        currentLon = cache.lon;
+        
+        updateDynamicTheme(cache.weatherId || 800, cache.mainWeather || "Clear");
+        processWeatherData(cache.temp, cache.hum);
+    } else {
+        line1.innerText = "📍 Mode Luring Premium";
+        line2.innerText = "Menggunakan Parameter Manual Mandiri";
+        document.getElementById('pres-val').innerText = "1013 (Std)";
+        applyPremiumOfflineData();
+    }
+}
+
+function applyPremiumOfflineData() {
+    const temp = parseInt(document.getElementById('off-temp').value) || 28;
+    const hum = parseInt(document.getElementById('off-hum').value) || 60;
+    const simulatedCondition = document.getElementById('off-condition').value; 
+    
+    document.getElementById('temp-val').innerText = temp + "°C";
+    document.getElementById('hum-val').innerText = hum + "%";
+    
+    let simulatedId = 800;
+    if (simulatedCondition === "clouds") simulatedId = 803;
+    if (simulatedCondition === "rain") simulatedId = 500;
+    
+    updateDynamicTheme(simulatedId, simulatedCondition);
+    processWeatherData(temp, hum);
+}
+
+function processWeatherData(temp, hum) {
+    performAIAnalysis(temp, hum);
+    
+    if (!isTimerRunning) {
+        if (currentSelectedBaseDuration === 0) currentSelectedBaseDuration = 30;
+        let calculatedTime = Math.max(25, Math.min(90, Math.round(currentSelectedBaseDuration * Math.pow(0.95, temp - 28))));
+        totalDurationMinutes = calculatedTime;
+        document.getElementById('countdown').innerText = `${calculatedTime}:00`;
+        updateTimeLabels(calculatedTime, 0);
+        
+        document.getElementById('ai-tips').innerHTML = `Suhu terdeteksi ${temp}°C. Dengan kelembaban ${hum}%. <br>Waktu proofing diatur otomatis ke ${calculatedTime} menit.`;
+    } else {
+        if (globalTotalSeconds > 0) {
+            let oldCalculatedTime = totalDurationMinutes;
+            let newCalculatedTime = Math.max(25, Math.min(90, Math.round(currentSelectedBaseDuration * Math.pow(0.95, temp - 28))));
+            
+            if (oldCalculatedTime !== newCalculatedTime) {
+                let ratio = globalTotalSeconds / (oldCalculatedTime * 60);
+                globalTotalSeconds = Math.round(newCalculatedTime * 60 * ratio);
+                globalInitialSeconds = newCalculatedTime * 60;
+                totalDurationMinutes = newCalculatedTime;
+                
+                let m = Math.floor(globalTotalSeconds / 60);
+                let s = globalTotalSeconds % 60;
+                document.getElementById('countdown').innerText = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+                updateCircleProgress();
+                updateTimeLabels(m, s, false);
+                
+                document.getElementById('ai-tips').innerHTML = `🔄 Cuaca Diperbarui! Suhu bergeser ke ${temp}°C.<br>Durasi total disesuaikan dari ${oldCalculatedTime} mnt menjadi ${newCalculatedTime} mnt.`;
+            } else {
+                document.getElementById('ai-tips').innerHTML = `🔄 Cuaca Diperbarui! Suhu stabil pada ${temp}°C.<br>Waktu proofing tetap berjalan aman.`;
+            }
+        } else {
+            document.getElementById('ai-tips').innerHTML = `🔄 Cuaca Diperbarui!<br>Adonan saat ini sedang dalam status Over-proofing (+).`;
+        }
+    }
+}
+
+function performAIAnalysis(temp, humidity) {
+    const insightEl = document.getElementById('ai-insight');
+    const recEl = document.getElementById('ai-recommendation');
+    if (!insightEl || !recEl) return;
+
+    let insight = "";
+    let action = "";
+    let recommendation = "";
+
+    if (temp < 22) {
+        insight = `Suhu ${temp}°C tergolong dingin. Ragi akan bekerja lambat.`;
+        action = "Adonan membutuhkan waktu lebih lama untuk mengembang dengan baik.";
+        recommendation = "💡 Rekomendasi: Gunakan air hangat untuk melarutkan ragi.";
+    } else if (temp >= 22 && temp <= 28) {
+        insight = `Suhu ${temp}°C adalah suhu ideal untuk proofing adonan donat.`;
+        action = "Kondisi sangat stabil untuk fermentasi ragi.";
+        recommendation = "<br>✅ Kondisi sempurna, ikuti durasi standar proofing.";
+    } else {
+        insight = `Suhu ${temp}°C cukup panas. Ragi akan bekerja sangat cepat. Kelembaban ${humidity}% Cukup untuk mencegah permukaan adonan mengering, namun perlu pengawasan agar tidak membentuk "kulit" tebal.`;
+        action = `Risiko over-proofing sangat tinggi jika tidak dipantau. Karena kelembapan ${humidity}%, sangat disarankan untuk menutup adonan dengan kain lembap atau plastik (plastic wrap) agar bagian atas adonan tidak mengalami crusting (pengerasan kulit) yang bisa menyebabkan permukaan donat pecah saat digoreng.`;
+        recommendation = "⚠️ Rekomendasi: Awasi dengan ketat setiap 15 menit, jangan sampai adonan terlalu mengembang.";
+    }
+
+    if (humidity > 70) {
+        insight += " Kelembaban tinggi dapat membuat adonan lengket.";
+        action += " Taburi sedikit tepung saat membentuk adonan untuk mencegah lengket.";
+        recommendation += "<br>💡 Rekomendasi: Taburi sedikit tepung saat membentuk donat.";
+    }
+    insightEl.innerHTML = `<strong>Insight:</strong> ${insight}<br><br><strong>Action:</strong> ${action}`;
+    recEl.innerHTML = `<strong>Rekomendasi:</strong> ${recommendation}`;
+}
+
+function handleTimerClick() {
+    if (isTimerRunning) return; 
+    
+    const display = document.getElementById('countdown');
+    display.innerText = "00:00";
+    totalDurationMinutes = 0;
+    currentSelectedBaseDuration = 0;
+    updateCircleProgress();
+    updateTimeLabels(0, 0);
+    document.getElementById('ai-tips').innerHTML = "Waktu dikosongkan.<br>Silakan pilih mode atau atur manual.";
+}
+
+function setControlsDisabled(disabled) {
+    document.getElementById('btn-mode-initial').disabled = disabled;
+    document.getElementById('btn-mode-rounding').disabled = disabled;
+    document.getElementById('btn-mode-final').disabled = disabled;
+    document.getElementById('custom-time').disabled = disabled;
+    document.getElementById('set-btn').disabled = disabled;
+    document.getElementById('off-temp').disabled = disabled;
+    document.getElementById('off-hum').disabled = disabled;
+}
+
+function triggerMainProofing() {
+    const mainBtn = document.getElementById('main-start-btn');
+    if (mainBtn && mainBtn.innerText === "START PROOFING") {
+        let display = document.getElementById('countdown');
+        let timeParts = display.innerText.replace('+', '').split(':');
+        let checkSeconds = parseInt(timeParts[0]) * 60 + parseInt(timeParts[1]);
+        
+        if (checkSeconds <= 0) {
+            alert("Silakan tentukan waktu sebelum memulai.");
+            return;
+        }
+
+        mainBtn.innerText = "RESET PROOFING"; 
+        mainBtn.style.background = "#d32f2f";
+        alarmTriggered = false; 
+        setControlsDisabled(true); 
+        startProofing();
+    } else {
+        clearInterval(timerInterval);
+        isTimerRunning = false;
+        setControlsDisabled(false); 
+        if (mainBtn) {
+            mainBtn.innerText = "START PROOFING";
+            mainBtn.style.background = "var(--chocolate)";
+        }
+        document.getElementById('countdown').innerText = "00:00";
+        totalDurationMinutes = 0;
+        currentSelectedBaseDuration = 0;
+        globalTotalSeconds = 0;
+        globalInitialSeconds = 0;
+        
+        updateCircleProgress(); 
+        updateTimeLabels(0, 0, false);
+        document.getElementById('ai-tips').innerHTML = "Proses proofing direset total.<br>Silakan atur kembali waktu adonan.";
+    }
+}
+
+let globalTotalSeconds = 0;
+let globalInitialSeconds = 0;
+
+function updateCircleProgress() {
+    let circle = document.getElementById('progress-circle');
+    if (!circle) return;
+    
+    const isMini = document.getElementById('app-container').classList.contains('mini-mode');
+    const circumference = isMini ? 282.7 : 565.48;
+    
+    if (globalInitialSeconds <= 0) {
+        circle.style.strokeDashoffset = "0"; 
+        return;
+    }
+    
+    let offset = 0;
+    if (globalTotalSeconds >= 0) {
+        offset = circumference - ((globalTotalSeconds / globalInitialSeconds) * circumference);
+    } else {
+        offset = circumference; 
+    }
+    circle.style.strokeDashoffset = offset;
+}
+
+// LOGIK UTAMA PROOFING TIMER
+function startProofing() {
+    let display = document.getElementById('countdown');
+    let timeParts = display.innerText.replace('+', '').split(':');
+    globalTotalSeconds = parseInt(timeParts[0]) * 60 + parseInt(timeParts[1]);
+    globalInitialSeconds = totalDurationMinutes * 60;
+
+    if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+    }
+
+    clearInterval(timerInterval);
+    isTimerRunning = true;
+
+    timerInterval = setInterval(() => {
+        globalTotalSeconds--;
+        
+        if (globalTotalSeconds >= 0) {
+            let m = Math.floor(globalTotalSeconds / 60);
+            let s = globalTotalSeconds % 60;
+            display.innerText = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+            
+            updateCircleProgress();
+            updateTimeLabels(m, s, false);
+        } else {
+            let overtimeSeconds = Math.abs(globalTotalSeconds);
+            let m = Math.floor(overtimeSeconds / 60);
+            let s = overtimeSeconds % 60;
+            
+            display.innerText = `+${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+            
+            updateCircleProgress();
+            updateTimeLabels(m, s, true);
+            
+            if (!alarmTriggered) {
+                alarmTriggered = true;
+                playAlarmTone();
+                triggerVibration();
+                
+                setTimeout(() => {
+                    alert("Waktu proofing telah selesai! Adonan terancam OVER-PROOFING jika dibiarkan!");
+                }, 50);
+            }
+            
+            document.getElementById('ai-tips').innerHTML = `⚠️ PERINGATAN: Adonan melewati batas standar!<br>Terlambat selama ${m} menit ${s} detik.`;
+        }
+    }, 1000);
+}
+
+// LOGIK UNTUK MODE SELECTION DAN CUSTOM TIME - FUNGSI TOMBOL SET
+function setMode(mode) {
+    if (isTimerRunning) return; 
+
+    let display = document.getElementById('countdown');
+    let duration = 0;
+
+    if (mode === 'initial') duration = 60;
+    else if (mode === 'rounding') duration = 15;
+    else if (mode === 'final') duration = 45;
+
+    currentSelectedBaseDuration = duration;
+
+    let tempVal = document.getElementById('temp-val').innerText;
+    let temp = parseFloat(tempVal) || 28; 
+    let calculated = Math.round(duration * Math.pow(0.95, temp - 28));
+
+    totalDurationMinutes = calculated;
+    display.innerText = `${calculated}:00`;
+    updateTimeLabels(calculated, 0, false);
+    document.getElementById('ai-tips').innerHTML = `Mode ${mode.toUpperCase()} dipilih.<br>Waktu disesuaikan ke ${calculated} menit berdasarkan suhu dapur.`;
+    
+    globalTotalSeconds = calculated * 60;
+    globalInitialSeconds = calculated * 60;
+    updateCircleProgress();
+}
+
+function openInGoogleMaps() {
+    if (currentLat && currentLon) {
+        const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${currentLat},${currentLon}`;
+        window.open(mapsUrl, '_blank');
+    } else {
+        alert("Lokasi belum terdeteksi/diatur. Tidak bisa membuka Google Maps.");
+    }
+}
+
+let touchStartY = 0;
+document.addEventListener('touchstart', (e) => {
+    touchStartY = e.touches[0].clientY;
+});
+
+document.addEventListener('touchend', (e) => {
+    const touchEndY = e.changedTouches[0].clientY;
+    const refreshIndicator = document.getElementById('refresh-indicator');
+
+    // Logika Refresh
+    if (touchEndY - touchStartY > 100 && window.scrollY === 0) {
+        refreshIndicator.style.display = "block";
+        initApp().then(() => { refreshIndicator.style.display = "none"; });
+    }
+});
+
+document.addEventListener('click', function(event) {
+    const aiBox = document.getElementById('ai-analysis');
+    const aiToggle = document.getElementById('ai-toggle');
+
+    // Jika target klik di luar aiBox dan bukan tombol aiToggle
+    if (aiBox && aiBox.classList.contains('show')) {
+        if (!aiBox.contains(event.target) && event.target !== aiToggle) {
+            aiBox.classList.remove('show');
+        }
+    }
+});
+
+const aiBox = document.getElementById('ai-analysis');
+if (aiBox) {
+    aiBox.addEventListener('click', function() {
+        aiBox.classList.remove('show');
+    });
+}
+
+function toggleAI(event) {
+    const aiBox = document.getElementById('ai-analysis');
+    if (!aiBox) return;
+    if (event) {
+        event.stopPropagation();
+    }
+    aiBox.classList.toggle('show');
+}
+
+function setCustomTime() {
+    if (isTimerRunning) return; 
+
+    const input = document.getElementById('custom-time').value;
+    const display = document.getElementById('countdown');
+    
+    let minutes = parseInt(input);
+    if (isNaN(minutes) || minutes < 1) minutes = 1;
+    if (minutes > 120) minutes = 120;
+
+    currentSelectedBaseDuration = minutes;
+
+    let tempVal = document.getElementById('temp-val').innerText;
+    let temp = parseFloat(tempVal) || 28; 
+    let calculated = Math.round(minutes * Math.pow(0.95, temp - 28));
+
+    totalDurationMinutes = calculated;
+    display.innerText = `${String(calculated).padStart(2, '0')}:00`;
+    
+    globalTotalSeconds = calculated * 60;
+    globalInitialSeconds = calculated * 60;
+    updateCircleProgress();
+    updateTimeLabels(calculated, 0, false);
+    
+    document.getElementById('ai-tips').innerHTML = `Waktu dasar ${minutes} menit diatur.<br>Disesuaikan menjadi ${calculated} menit karena suhu ruangan ${temp}°C.`;
+}
+
+// LOGIK SERVICE WORKER UNTUK PWA - FUNGSI SERVICE WORKER UNTUK PWA
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg => console.log('Service Worker terdaftar:', reg.scope))
+      .catch(err => console.log('Pendaftaran gagal:', err));
+  });
+}
+
+// 2. Fungsi untuk mengirim pesan yang aman
+function kirimPesanKeSW(lat, lon) {
+    if (navigator.serviceWorker.controller) {
+        // Jika sudah ada controller, langsung kirim
+        navigator.serviceWorker.controller.postMessage({
+            action: 'fetchWeather',
+            lat: lat,
+            lon: lon
+        });
+    } else {
+        // Jika belum, tunggu sampai Service Worker siap
+        navigator.serviceWorker.ready.then((registration) => {
+            if (registration.active) {
+                registration.active.postMessage({
+                    action: 'fetchWeather',
+                    lat: lat,
+                    lon: lon
+                });
+            }
+        });
+    }
+}
+
+window.onload = initApp;
+window.addEventListener('offline', handleOfflinePremium);
+window.addEventListener('online', initApp);
+</script>
+</body>
+</html>
