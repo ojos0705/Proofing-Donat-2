@@ -1,7 +1,7 @@
 {
   "name": "Donut Proofing Agent",
   "short_name": "ProofingDonat",
-  "description": "Aplikasi monitoring dan kalkulator fermentasi adonan donat otomatis berbasis cuaca.",
+  "description": "Aplikasi kalkulator dan pemantau fermentasi adonan donat otomatis.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -19,12 +19,6 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
-    },
-    {
-      "src": "https://img.icons8.com/fluent/512/doughnut.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
     }
   ]
 }
