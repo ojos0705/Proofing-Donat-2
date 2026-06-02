@@ -1,51 +1,54 @@
-// api/weather.js
+// sw.js
+const CACHE_NAME = 'donut-pwa-v3';
+const ASSETS = [
+  '/index.html',
+  '/manifest.json'
+];
 
-export default async function handler(req, res) {
-    // Mengambil parameter query langsung dari objek request bawaan Vercel
-    const { lat, lon } = req.query;
-    
-    // Mengambil API Key dari Environment Variable Vercel
-    const API_KEY = process.env.OPENWEATHER_API_KEY; 
+// Tahap instalasi aset esensial
+self.addEventListener('install', (e) => {
+  e.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return Promise.all(
+        ASSETS.map((url) => {
+          return cache.add(url).catch((err) => {
+            console.warn(`Aset dilewati dari cache offline: ${url}`, err);
+          });
+        })
+      );
+    }).then(() => self.skipWaiting())
+  );
+});
 
-    // Header untuk menghindari masalah CORS pada PWA Anda
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET');
-    res.setHeader('Content-Type', 'application/json');
+// Aktivasi dan pembersihan cache usang
+self.addEventListener('activate', (e) => {
+  e.waitUntil(
+    caches.keys().then((keys) => {
+      return Promise.all(
+        keys.map((key) => {
+          if (key !== CACHE_NAME) {
+            return caches.delete(key);
+          }
+        })
+      );
+    }).then(() => self.clients.claim())
+  );
+});
 
-    if (!lat || !lon) {
-        return res.status(400).json({ error: "Koordinat lat dan lon diperlukan" });
-    }
+// Interseptor Request Jaringan
+self.addEventListener('fetch', (e) => {
+  // JANGAN intercept rute /api/ agar request cuaca tetap berjalan dinamis ke cloud proxy
+  if (e.request.url.includes('/api/')) {
+    return;
+  }
 
-    if (!API_KEY) {
-        return res.status(500).json({ error: "API Key OpenWeather belum dikonfigurasi di Vercel" });
-    }
-
-    const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`;
-    const geocodeUrl = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`;
-
-    try {
-        // Ambil data dari OpenWeather dan OpenStreetMap secara paralel
-        const [weatherRes, geocodeRes] = await Promise.all([
-            fetch(weatherUrl),
-            fetch(geocodeUrl, {
-                headers: { 'User-Agent': 'DonutProofingAgent/1.0' }
-            })
-        ]);
-
-        if (!weatherRes.ok || !geocodeRes.ok) {
-            return res.status(502).json({ error: "Gagal mengambil data dari penyedia API pihak ketiga" });
+  e.respondWith(
+    caches.match(e.request).then((response) => {
+      return response || fetch(e.request).catch(() => {
+        if (e.request.mode === 'navigate') {
+          return caches.match('/index.html');
         }
-
-        const weatherData = await weatherRes.json();
-        const geoData = await geocodeRes.json();
-
-        // Gabungkan dan kirim kembali ke PWA index.html
-        return res.status(200).json({
-            weather: weatherData,
-            geocode: geoData
-        });
-
-    } catch (error) {
-        return res.status(500).json({ error: error.message });
-    }
-}
+      });
+    })
+  );
+});
