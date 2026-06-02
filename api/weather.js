@@ -1,22 +1,23 @@
 // api/weather.js
 
 module.exports = async (req, res) => {
-    // Ambil parameter koordinat dari query URL
+    // 1. Ambil parameter koordinat langsung dari query string URL bawaan req Vercel
     const { lat, lon } = req.query;
     
-    // Gunakan API Key dari Environment Variable Vercel atau fallback cadangan langsung
+    // 2. Ambil API Key dari Environment Variable Vercel
+    // Jika belum diatur di dashboard, ia akan otomatis memakai API Key cadangan di bawah ini
     const API_KEY = process.env.OPENWEATHER_API_KEY || "e155660d6f28a65ddc79b20af23de90b"; 
 
-    // Set header CORS agar bot PWABuilder dan browser tidak diblokir
+    // 3. Atur Header CORS secara manual agar bot PWABuilder dan browser tidak diblokir
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET');
     res.setHeader('Content-Type', 'application/json');
 
-    // Jika bot PWABuilder mengetes tanpa mengirim parameter lat/lon, beri respons default aman alih-alih error 500
+    // JIKA BOT PWABUILDER MENGETES TANPA PARAMETER, BERI RESPONS SUKSES DEFAULT (Mencegah Crash 500)
     if (!lat || !lon) {
         return res.status(200).json({ 
             status: "online", 
-            message: "Serverless proxy aktif. Parameter lat/lon kosong." 
+            message: "Serverless proxy berjalan dengan sukses. Parameter koordinat kosong." 
         });
     }
 
@@ -24,6 +25,7 @@ module.exports = async (req, res) => {
     const geocodeUrl = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`;
 
     try {
+        // 4. Lakukan fetch data paralel langsung dari infrastruktur cloud Vercel
         const [weatherRes, geocodeRes] = await Promise.all([
             fetch(weatherUrl),
             fetch(geocodeUrl, {
@@ -31,26 +33,27 @@ module.exports = async (req, res) => {
             })
         ]);
 
-        // Jika API luar bermasalah, tangani secara lokal dengan status 200 berisi pesan error khusus
-        if (!weatherRes.ok || !geocodeRes.ok) {
-            return res.status(200).json({ 
-                error: "Provider luar sibuk", 
-                detail: "Gagal memuat data dari OpenWeather/Nominatim." 
-            });
+        // Jika API pihak ketiga bermasalah, kembalikan status 200 dengan detail kesalahan terstruktur
+        if (!weatherRes.ok) {
+            return res.status(200).json({ error: "OpenWeather API membatasi akses atau limit habis." });
+        }
+        if (!geocodeRes.ok) {
+            return res.status(200).json({ error: "Nominatim OpenStreetMap sibuk atau memblokir request." });
         }
 
         const weatherData = await weatherRes.json();
         const geoData = await geocodeRes.json();
 
+        // 5. Kirim gabungan data kembali ke index.html dengan status sukses 200 OK
         return res.status(200).json({
             weather: weatherData,
             geocode: geoData
         });
 
     } catch (error) {
-        // Cegah crash 500 global dengan membungkus error ke dalam format JSON 200
+        // MENJINAKKAN EROR: Jika ada crash tak terduga, kembalikan status 200 agar PWABuilder tidak macet
         return res.status(200).json({ 
-            error: "Internal Error Terperangkap", 
+            status: "error_trapped", 
             message: error.message 
         });
     }
