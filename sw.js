@@ -1,43 +1,39 @@
 // sw.js
-const CACHE_NAME = 'donut-pwa-v3';
+const CACHE_NAME = 'donut-pwa-v5';
 const ASSETS = [
   '/index.html',
   '/manifest.json'
 ];
 
-// Tahap instalasi aset esensial
+// Menginstall Service Worker dan mengamankan aset esensial ke dalam cache offline
 self.addEventListener('install', (e) => {
   e.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
       return Promise.all(
         ASSETS.map((url) => {
-          return cache.add(url).catch((err) => {
-            console.warn(`Aset dilewati dari cache offline: ${url}`, err);
-          });
+          return cache.add(url).catch((err) => console.warn(`Aset dilewati dari cache: ${url}`, err));
         })
       );
     }).then(() => self.skipWaiting())
   );
 });
 
-// Aktivasi dan pembersihan cache usang
+// Pembersihan cache usang ketika aplikasi diperbarui ke versi baru
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keys) => {
       return Promise.all(
         keys.map((key) => {
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
-          }
+          if (key !== CACHE_NAME) return caches.delete(key);
         })
       );
     }).then(() => self.clients.claim())
   );
 });
 
-// Interseptor Request Jaringan
+// Strategi Interseptor Jaringan Statis
 self.addEventListener('fetch', (e) => {
-  // JANGAN intercept rute /api/ agar request cuaca tetap berjalan dinamis ke cloud proxy
+  // PENTING: Jangan biarkan service worker meng-intercept rute API agar datanya selalu aktual dari cloud
   if (e.request.url.includes('/api/')) {
     return;
   }
