@@ -10,7 +10,7 @@ module.exports = async (req, res) => {
 
     // 3. Atur Header CORS secara manual agar bot PWABuilder dan browser tidak diblokir
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTION');
     res.setHeader('Content-Type', 'application/json');
 
     // JIKA BOT PWABUILDER MENGETES TANPA PARAMETER, BERI RESPONS SUKSES DEFAULT (Mencegah Crash 500)
