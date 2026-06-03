@@ -1050,27 +1050,10 @@ async function initApp() {
 
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
-    (position) => {
-        currentLat = position.coords.latitude;
-        currentLon = position.coords.longitude;
-        
-        // Ambil ketinggian langsung dari sensor GPS HP (jika tersedia)
-        // Jika sensor perangkat tidak menyediakan atau tidak akurat, kita berikan fallback
-        let realAltitude = position.coords.altitude; 
-        
-        document.getElementById('loc-line1').innerText = `Lat: ${currentLat.toFixed(4)}`;
-        document.getElementById('loc-line2').innerText = `Lon: ${currentLon.toFixed(4)}`;
-        
-        // Teruskan data realAltitude ke fungsi cuaca
-        fetchWeatherData(currentLat, currentLon, realAltitude);
-    },
-    // ... handling error geolocation Anda
-            }, 
-            async (error) => {
-                await fetchLocationViaIP();
-            }, 
-            { enableHighAccuracy: false, timeout: 4000, maximumAge: 60000 }
-        );
+            async (position) => {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+                await fetchLocationAndWeather(lat, lon, "GPS");
             }, 
             async (error) => {
                 await fetchLocationViaIP();
