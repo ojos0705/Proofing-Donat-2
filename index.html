@@ -1144,8 +1144,24 @@ async function fetchLocationAndWeather(lat, lon, source) {
         const weatherId = weatherData.weather[0].id;
         const mainWeather = weatherData.weather[0].main;
 
-        // Hitung Ketinggian (Altitude)
-        const altitude = Math.round(44330 * (1 - Math.pow((pressure / 1013.25), 0.190284)));
+            // --- STRATEGI METODE GANDA UNTUK KETINGGIAN ---
+        let altitude;
+        try {
+            // 1. Metode Online: Ambil data dari API Ketinggian Open-Meteo
+            const elevationRes = await fetch(`https://api.open-meteo.com/v1/elevation?latitude=${lat}&longitude=${lon}`);
+            const elevationData = await elevationRes.json();
+            
+            if (elevationData && elevationData.elevation && elevationData.elevation[0] !== undefined) {
+                altitude = Math.round(elevationData.elevation[0]);
+                console.log("Ketinggian didapat dari API: " + altitude + "m");
+            } else {
+                throw new Error("Data API kosong");
+            }
+        } catch (error) {
+            // 2. Metode Offline/Fallback: Hitung menggunakan Rumus Barometrik dari tekanan udara
+            altitude = Math.round(44330 * (1 - Math.pow((pressure / 1013.25), 0.190284)));
+            console.log("Ketinggian dihitung lewat Rumus Barometrik (Offline Mode): " + altitude + "m");
+        }
 
         // Ekstraksi komponen lokasi Indonesia dari OpenStreetMap (Nominatim)
         const geoData = data.geocode;
